@@ -1,13 +1,14 @@
 import uuid
 from decimal import Decimal
-from typing import List, Sequence
+from typing import List
 from fastapi import APIRouter, HTTPException, Security, status
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser, DBSession, get_current_user
 from app.models.procurement import POStatus, PurchaseOrder, PurchaseOrderItem
 from app.repositories.order_repo import OrderRepository
+from app.services.po_receiving import POReceiveRequest, POReceivingService
+from app.services.replenishment import AutoReplenishmentResult, AutoReplenishmentService
 
 router = APIRouter()
 
@@ -71,3 +72,40 @@ async def get_purchase_order(
     if not po:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Purchase order not found")
     return po
+
+
+@router.post("/{po_id}/order", response_model=PORead)
+async def order_purchase_order(
+    po_id: uuid.UUID,
+    db: DBSession,
+    _: CurrentUser = Security(get_current_user, scopes=["po:write"]),
+):
+    service = POReceivingService(db)
+    await service.transition_to_ordered(po_id)
+    repo = OrderRepository(db)
+    return await repo.get_with_items(po_id)
+
+
+@router.post("/{po_id}/receive", response_model=PORead)
+async def receive_purchase_order(
+    po_id: uuid.UUID,
+    payload: POReceiveRequest,
+    db: DBSession,
+    current_user: CurrentUser = Security(get_current_user, scopes=["po:write"]),
+):
+    service = POReceivingService(db)
+    await service.receive_purchase_order(
+        po_id=po_id,
+        receive_items=payload.items,
+        user_id=current_user.id,
+    )
+    repo = OrderRepository(db)
+    return await repo.get_with_items(po_id)
+
+@router.post("/auto-replenish", response_model=AutoReplenishmentResult)
+async def trigger_auto_replenishment(
+    db: DBSession,
+    _: CurrentUser = Security(get_current_user, scopes=["po:write"]),
+):
+    service = AutoReplenishmentService(db)
+    return await service.run_replenishment_scan()

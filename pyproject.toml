@@ -6,6 +6,7 @@ authors = [{ name = "Core Engineering Team" }]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.111.0",
+    "python-multipart>=0.0.9",
     "uvicorn[standard]>=0.30.0",
     "sqlalchemy[asyncio]>=2.0.31",
     "asyncpg>=0.29.0",

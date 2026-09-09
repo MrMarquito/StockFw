@@ -1,13 +1,28 @@
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.pytest_cache/
-.ruff_cache/
-.dockerignore
+# Secrets and Credentials
+secrets/
+*.txt
 .env
-Dockerfile
+.env.*
+!.env.example
+
+# Python & Environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+
+# Flutter & Dart
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/pubspec.lock
+
+# Database & Caddy storage
+postgres_prod_data/
+caddy_data/
+caddy_config/

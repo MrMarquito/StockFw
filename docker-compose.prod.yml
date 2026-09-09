@@ -1,0 +1,148 @@
+services:
+  # 🌐 Caddy Reverse Proxy & SSL Termination
+  caddy:
+    image: caddy:2-alpine
+    container_name: erp-prod-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - backend_network
+    depends_on:
+      app:
+        condition: service_healthy
+
+  # ⚙️ Production Application
+  app:
+    image: ghcr.io/${GHCR_IMAGE_PATH}:${IMAGE_TAG:-latest}
+    container_name: erp-prod-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-warehouse_erp}
+      POSTGRES_USER: ${POSTGRES_USER:-erp_admin}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      SECRET_KEY_FILE: /run/secrets/app_secret_key
+      AUTO_REPLENISH_ENABLED: "true"
+      AUTO_REPLENISH_INTERVAL_SECONDS: 300
+    secrets:
+      - postgres_password
+      - app_secret_key
+    networks:
+      - backend_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1536M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${WEB_CONCURRENCY:-4} --no-access-log"
+
+  # 🗄️ Production PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: erp-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-warehouse_erp}
+      POSTGRES_USER: ${POSTGRES_USER:-erp_admin}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    networks:
+      - backend_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-erp_admin} -d ${POSTGRES_DB:-warehouse_erp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2048M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  # 📦 Automated PostgreSQL Backup Sidecar
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:16-alpine
+    container_name: erp-prod-backup
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-warehouse_erp}
+      POSTGRES_USER: ${POSTGRES_USER:-erp_admin}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      SCHEDULE: "@daily"            # Runs nightly at 00:00 UTC (or standard cron "0 2 * * *")
+      BACKUP_KEEP_DAYS: 7           # Keep daily backups for 7 days
+      BACKUP_KEEP_WEEKS: 4          # Keep weekly snapshots for 4 weeks
+      BACKUP_KEEP_MONTHS: 6         # Keep monthly archives for 6 months
+      BACKUP_DIR: /backups
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_backup_data:/backups
+    networks:
+      - backend_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+volumes:
+  postgres_prod_data:
+    name: erp_postgres_prod_data
+  postgres_backup_data:
+    name: erp_postgres_backup_data
+  caddy_data:
+    name: erp_caddy_prod_data
+  caddy_config:
+    name: erp_caddy_prod_config
+
+networks:
+  backend_network:
+    name: erp_prod_network
+    driver: bridge
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  app_secret_key:
+    file: ./secrets/app_secret_key.txt
