@@ -92,7 +92,7 @@ jobs:
   deploy-github-pages:
     name: Deploy Flutter Web to GitHub Pages
     needs: flutter-lint
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
