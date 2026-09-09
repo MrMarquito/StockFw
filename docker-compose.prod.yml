@@ -23,6 +23,9 @@ services:
 
   # ⚙️ Production Application
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ghcr.io/${GHCR_IMAGE_PATH}:${IMAGE_TAG:-latest}
     container_name: erp-prod-app
     restart: unless-stopped
