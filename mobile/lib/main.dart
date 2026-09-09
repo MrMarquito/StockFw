@@ -39,7 +39,7 @@ class WarehouseScannerScreen extends StatefulWidget {
 }
 
 class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
-  int _activeStep = 0; // 0 = Source, 1 = SKU, 2 = Target, 3 = Ready
+  int _activeStep = 0;
   String? _sourceBin;
   String? _sku;
   String? _targetBin;
@@ -47,7 +47,6 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
   final int _availableStock = 150;
   bool _isSubmitting = false;
 
-  // Recent activity stream
   final List<Map<String, dynamic>> _recentLogs = [];
 
   void _advanceStep(String value) {
@@ -116,8 +115,7 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // Direct call to Caddy Reverse Proxy (or local API)
-      final response = await http.post(
+      await http.post(
         Uri.parse('https://localhost/api/v1/inventory/transfers'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -130,7 +128,6 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
 
       _logSuccess(_sourceBin!, _targetBin!, _sku!, _transferQty);
     } catch (_) {
-      // Fallback for isolated client-side mock verification
       await Future.delayed(const Duration(milliseconds: 600));
       _logSuccess(_sourceBin!, _targetBin!, _sku!, _transferQty);
     } finally {
@@ -176,9 +173,9 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
               child: const Icon(Icons.warehouse_rounded, color: Color(0xFF3B82F6), size: 20),
             ),
             const SizedBox(width: 12),
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text("StockFW Enterprise", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 Text("Hub 01 • Floor Dispatch", style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
               ],
@@ -195,8 +192,8 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFF059669)),
             ),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Icon(Icons.wifi_rounded, size: 14, color: Color(0xFF34D399)),
                 SizedBox(width: 6),
                 Text("ONLINE", style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
@@ -391,11 +388,11 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("QUANTITY", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
-                  Text("Max: $_availableStock units", style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  Text("QUANTITY", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
+                  Text("Max: 150 units", style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                 ],
               ),
               Row(
@@ -414,7 +411,6 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Quick batch increments
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [5, 10, 25, 50].map((inc) {
@@ -465,8 +461,8 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.history_rounded, size: 18, color: Color(0xFF60A5FA)),
               SizedBox(width: 8),
               Text("Recent Dispatches", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
@@ -510,10 +506,14 @@ class _WarehouseScannerScreenState extends State<WarehouseScannerScreen> {
 
   String _getInstructionText() {
     switch (_activeStep) {
-      case 0: return "Scan Source Bin QR";
-      case 1: return "Scan Item SKU Barcode";
-      case 2: return "Scan Destination Bin QR";
-      default: return "Review & Confirm Dispatch";
+      case 0:
+        return "Scan Source Bin QR";
+      case 1:
+        return "Scan Item SKU Barcode";
+      case 2:
+        return "Scan Destination Bin QR";
+      default:
+        return "Review & Confirm Dispatch";
     }
   }
 }

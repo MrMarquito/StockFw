@@ -16,6 +16,7 @@ dependencies:
   flutter_secure_storage: ^9.0.0 # Secure storage for JWT bearer tokens
   uuid: ^4.3.0
   sqflite_common_ffi_web: ^0.4.0
+  http: ^1.2.1
 
 dev_dependencies:
   flutter_test:
