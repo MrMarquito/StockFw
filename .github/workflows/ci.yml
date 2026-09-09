@@ -10,6 +10,8 @@ on:
 permissions:
   contents: read
   packages: write
+  pages: write        # Required to deploy to GitHub Pages
+  id-token: write     # Required for GitHub Pages OIDC authentication
 
 jobs:
   backend-test:
@@ -86,6 +88,46 @@ jobs:
 
       - name: Run Flutter Tests
         run: flutter test
+
+  deploy-github-pages:
+    name: Deploy Flutter Web to GitHub Pages
+    needs: flutter-lint
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Build Flutter Web (with repository subpath)
+        run: flutter build web --release --base-href "/stockfw/"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: mobile/build/web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   docker-publish:
     name: Build & Publish Container Image
