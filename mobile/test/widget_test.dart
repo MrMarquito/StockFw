@@ -11,7 +11,7 @@ import 'package:warehouse_scanner/main.dart';
 void main() {
   testWidgets('Warehouse scanner HUD boots smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const WarehouseScannerApp());
-    expect(find.text('STOCK-FW // SCANNER'), findsOneWidget);
-    expect(find.text('SYS::ONLINE'), findsOneWidget);
+    expect(find.text('StockFW Enterprise'), findsOneWidget);
+    expect(find.text('ONLINE'), findsOneWidget);
   });
 }
