@@ -115,7 +115,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Flutter Web (with repository subpath)
-        run: flutter build web --release --base-href "/stockfw/"
+        run: flutter build web --release --base-href "/StockFw/"
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
