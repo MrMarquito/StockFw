@@ -17,10 +17,9 @@ class WarehouseScannerApp extends StatelessWidget {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF090D16),
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF00E676),      // Tactical Cyber Emerald
-          secondary: Color(0xFFFFAB00),    // Warning Amber
-          surface: Color(0xFF131A29),      // Deep Steel Container
-          background: Color(0xFF090D16),
+          primary: Color(0xFF00E676),
+          secondary: Color(0xFFFFAB00),
+          surface: Color(0xFF131A29),
           error: Color(0xFFFF3D71),
         ),
         fontFamily: 'monospace',
@@ -51,10 +50,10 @@ class IndustrialDashboard extends StatefulWidget {
 }
 
 class _IndustrialDashboardState extends State<IndustrialDashboard> {
-  int _currentStep = 0;
-  String _sourceBin = "BIN-A-01-A";
-  String _product = "SKU-BRG-100";
-  String _targetBin = "BIN-B-02-B";
+  final int _currentStep = 0;
+  final String _sourceBin = "BIN-A-01-A";
+  final String _product = "SKU-BRG-100";
+  final String _targetBin = "BIN-B-02-B";
   int _quantity = 25;
 
   @override
@@ -68,7 +67,7 @@ class _IndustrialDashboardState extends State<IndustrialDashboard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF00E676).withOpacity(0.15),
+                color: const Color.fromRGBO(0, 230, 118, 0.15),
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(color: const Color(0xFF00E676), width: 1),
               ),
@@ -92,7 +91,6 @@ class _IndustrialDashboardState extends State<IndustrialDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 🔲 Tactical HUD Viewport
               Container(
                 height: 220,
                 decoration: BoxDecoration(
@@ -102,13 +100,10 @@ class _IndustrialDashboardState extends State<IndustrialDashboard> {
                 ),
                 child: Stack(
                   children: [
-                    // Corner accents
                     Positioned(top: 12, left: 12, child: _hudCorner()),
                     Positioned(top: 12, right: 12, child: Transform.flip(flipX: true, child: _hudCorner())),
                     Positioned(bottom: 12, left: 12, child: Transform.flip(flipY: true, child: _hudCorner())),
                     Positioned(bottom: 12, right: 12, child: Transform.flip(flipX: true, flipY: true, child: _hudCorner())),
-
-                    // Reticle Center
                     Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -126,8 +121,6 @@ class _IndustrialDashboardState extends State<IndustrialDashboard> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // 📊 Operational Status Card
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -166,8 +159,6 @@ class _IndustrialDashboardState extends State<IndustrialDashboard> {
                 ),
               ),
               const Spacer(),
-
-              // ⚡ Execution Trigger Button
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00E676),
@@ -226,10 +217,14 @@ class _IndustrialDashboardState extends State<IndustrialDashboard> {
 
   String _stepLabel(int step) {
     switch (step) {
-      case 0: return "SOURCE BIN LOCATION";
-      case 1: return "PRODUCT BARCODE / SKU";
-      case 2: return "TARGET BIN DESTINATION";
-      default: return "TRANSFER CONFIRMATION";
+      case 0:
+        return "SOURCE BIN LOCATION";
+      case 1:
+        return "PRODUCT BARCODE / SKU";
+      case 2:
+        return "TARGET BIN DESTINATION";
+      default:
+        return "TRANSFER CONFIRMATION";
     }
   }
 }

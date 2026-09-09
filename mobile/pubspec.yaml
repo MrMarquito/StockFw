@@ -8,6 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  path: ^1.9.0
   mobile_scanner: ^5.1.0       # Hardware camera barcode/QR scanner
   dio: ^5.4.0                  # HTTP client for FastAPI REST endpoints
   sqflite: ^2.3.0              # Local SQLite store for offline transaction queuing
