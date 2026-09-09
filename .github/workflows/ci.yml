@@ -61,9 +61,35 @@ jobs:
         run: |
           pytest -v
 
+  flutter-lint:
+    name: Flutter Web & Mobile Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Analyze Flutter codebase
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run Flutter Tests
+        run: flutter test
+
   docker-publish:
     name: Build & Publish Container Image
-    needs: backend-test
+    needs: [backend-test, flutter-lint]
     runs-on: ubuntu-latest
 
     steps:
@@ -102,26 +128,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  flutter-lint:
-    name: Flutter Web & Mobile Checks
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-          cache: true
-
-      - name: Install Flutter packages
-        run: flutter pub get
-
-      - name: Analyze Flutter codebase
-        run: flutter analyze --no-fatal-infos
